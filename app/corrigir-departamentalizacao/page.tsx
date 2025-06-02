@@ -3,15 +3,14 @@
 import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { Badge } from "@/components/ui/badge"
 import { toast } from "@/hooks/use-toast"
 import { api } from "@/lib/api"
 import { ArrowLeft, Search, RefreshCw, AlertTriangle } from "lucide-react"
 import Link from "next/link"
-
-// Import the loading spinner
+import { DataGrid, GridColDef } from "@mui/x-data-grid"
+import { Badge } from "@/components/ui/badge"
 import { LoadingSpinner } from "@/components/ui/loading-spinner"
+import { Box, Typography } from "@mui/material"
 
 interface Divergencia {
   codpro01: number
@@ -52,7 +51,7 @@ export default function CorrigirDepartamentalizacaoPage() {
           description: `${data.total} produtos com divergências`,
         })
       }
-    } catch (error) {
+    } catch {
       toast({
         title: "Erro",
         description: "Erro ao verificar divergências",
@@ -65,19 +64,15 @@ export default function CorrigirDepartamentalizacaoPage() {
 
   const corrigirDivergencias = async () => {
     if (divergencias.length === 0) return
-
     setCorrecting(true)
     try {
       await api.atualizarCodgss(divergencias)
-
       toast({
         title: "Sucesso",
         description: `${divergencias.length} produtos foram atualizados`,
       })
-
-      // Verificar novamente após correção
       await verificarDivergencias()
-    } catch (error) {
+    } catch {
       toast({
         title: "Erro",
         description: "Erro ao corrigir divergências",
@@ -87,6 +82,65 @@ export default function CorrigirDepartamentalizacaoPage() {
       setCorrecting(false)
     }
   }
+
+  const columns: GridColDef[] = [
+    { field: "codbarra", headerName: "Código Barras", minWidth: 150, flex: 1 },
+    {
+      field: "descpro01",
+      headerName: "Descrição DBF",
+      minWidth: 200,
+      flex: 2,
+      renderCell: (params) => (
+        <Box sx={{ display: 'flex', alignItems: 'center', height: '100%' }}>
+          <Typography noWrap title={params.value}>
+            {params.value}
+          </Typography>
+        </Box>
+      ),
+    },
+    {
+      field: "descpro01_sql",
+      headerName: "Descrição SQL",
+      minWidth: 200,
+      flex: 2,
+      renderCell: (params) => (
+        <Box sx={{ display: 'flex', alignItems: 'center', height: '100%' }}>
+          <Typography noWrap title={params.value}>
+            {params.value}
+          </Typography>
+        </Box>
+      ),
+    },
+    {
+      field: "codpro01",
+      headerName: "Cód. Pro DBF",
+      minWidth: 100,
+      renderCell: (params) => <Badge variant="outline">{params.value}</Badge>,
+    },
+    {
+      field: "codpro01_sql",
+      headerName: "Cód. Pro SQL",
+      minWidth: 100,
+      renderCell: (params) => <Badge variant="outline">{params.value}</Badge>,
+    },
+    {
+      field: "codgss01",
+      headerName: "GSS DBF",
+      minWidth: 100,
+      renderCell: (params) => <Badge variant="secondary">{params.value}</Badge>,
+    },
+    {
+      field: "codgss01_sql",
+      headerName: "GSS SQL",
+      minWidth: 100,
+      renderCell: (params) => <Badge>{params.value}</Badge>,
+    },
+  ]
+
+  const rows = divergencias.map((item, index) => ({
+    id: `${item.codpro01_sql}-${index}`,
+    ...item,
+  }))
 
   return (
     <div className="container mx-auto p-6">
@@ -100,104 +154,66 @@ export default function CorrigirDepartamentalizacaoPage() {
         <h1 className="text-2xl font-bold">Corrigir Departamentalização</h1>
       </div>
 
-      <div className="space-y-6">
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center justify-between">
-              <span>Verificação de Divergências</span>
-              <div className="flex gap-2">
-                <Button onClick={verificarDivergencias} disabled={loading} variant="outline">
-                  {loading && <LoadingSpinner size="sm" className="mr-2" />}
-                  <Search className="h-4 w-4 mr-2" />
-                  {loading ? "Verificando..." : "Verificar Divergências"}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center justify-between">
+            <span>Verificação de Divergências</span>
+            <div className="flex gap-2">
+              <Button onClick={verificarDivergencias} disabled={loading} variant="outline">
+                {loading && <LoadingSpinner size="sm" className="mr-2" />}
+                <Search className="h-4 w-4 mr-2" />
+                {loading ? "Verificando..." : "Verificar Divergências"}
+              </Button>
+              {divergencias.length > 0 && (
+                <Button onClick={corrigirDivergencias} disabled={correcting}>
+                  {correcting && <LoadingSpinner size="sm" className="mr-2" />}
+                  <RefreshCw className="h-4 w-4 mr-2" />
+                  {correcting ? "Corrigindo..." : "Corrigir Divergências"}
                 </Button>
-                {divergencias.length > 0 && (
-                  <Button onClick={corrigirDivergencias} disabled={correcting}>
-                    {correcting && <LoadingSpinner size="sm" className="mr-2" />}
-                    <RefreshCw className="h-4 w-4 mr-2" />
-                    {correcting ? "Corrigindo..." : "Corrigir Divergências"}
-                  </Button>
-                )}
-              </div>
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            {total > 0 && (
-              <div className="mb-4">
-                <Badge variant="destructive" className="text-sm">
-                  <AlertTriangle className="h-4 w-4 mr-1" />
-                  {total} divergências encontradas
-                </Badge>
-              </div>
-            )}
+              )}
+            </div>
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          {total > 0 && (
+            <div className="mb-4">
+              <Badge variant="destructive" className="text-sm">
+                <AlertTriangle className="h-4 w-4 mr-1" />
+                {total} divergências encontradas
+              </Badge>
+            </div>
+          )}
 
-            {divergencias.length > 0 ? (
-              <div className="overflow-x-auto">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Código Barras</TableHead>
-                      <TableHead>Descrição DBF</TableHead>
-                      <TableHead>Descrição SQL</TableHead>
-                      <TableHead>Cód. Pro DBF</TableHead>
-                      <TableHead>Cód. Pro SQL</TableHead>
-                      <TableHead>GSS DBF</TableHead>
-                      <TableHead>GSS SQL</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {divergencias.map((div, index) => (
-                      <TableRow key={index}>
-                        <TableCell className="font-mono">{div.codbarra}</TableCell>
-                        <TableCell className="max-w-xs truncate" title={div.descpro01}>
-                          {div.descpro01.trim()}
-                        </TableCell>
-                        <TableCell className="max-w-xs truncate" title={div.descpro01_sql}>
-                          {div.descpro01_sql}
-                        </TableCell>
-                        <TableCell>
-                          <Badge variant="outline">{div.codpro01}</Badge>
-                        </TableCell>
-                        <TableCell>
-                          <Badge variant="outline">{div.codpro01_sql}</Badge>
-                        </TableCell>
-                        <TableCell>
-                          <Badge variant="secondary">{div.codgss01}</Badge>
-                        </TableCell>
-                        <TableCell>
-                          <Badge variant="default">{div.codgss01_sql}</Badge>
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </div>
-            ) : total === 0 && !loading ? (
+          {divergencias.length > 0 ? (
+            <Box sx={{ maxHeight: '80vh', width: '100%' }}>
+              <DataGrid
+                autoHeight
+                rows={rows}
+                columns={columns}
+                pageSizeOptions={[10, 100, 500]}
+                initialState={{
+                  pagination: {
+                    paginationModel: { pageSize: 10, page: 0 },
+                  },
+                }}
+                disableRowSelectionOnClick
+              />
+            </Box>
+
+          ) : !loading && total === 0 ? (
+            <div className="text-center py-8 text-muted-foreground">
+              <AlertTriangle className="h-12 w-12 mx-auto mb-4 opacity-50" />
+              <p>Nenhuma divergência encontrada</p>
+            </div>
+          ) : (
+            !loading && (
               <div className="text-center py-8 text-muted-foreground">
-                <AlertTriangle className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                <p>Nenhuma divergência encontrada</p>
+                <p>Clique em "Verificar Divergências" para começar</p>
               </div>
-            ) : (
-              !loading && (
-                <div className="text-center py-8 text-muted-foreground">
-                  <p>Clique em "Verificar Divergências" para começar</p>
-                </div>
-              )
-            )}
-
-            {total > 0 && divergencias.length === 0 && (
-              <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
-                <div className="flex items-center gap-2 text-yellow-800">
-                  <AlertTriangle className="h-5 w-5" />
-                  <p className="font-medium">
-                    Produtos com possíveis divergências de códigos de barras e conflito nos SUBGRUPOS verifique no banco
-                  </p>
-                </div>
-              </div>
-            )}
-          </CardContent>
-        </Card>
-      </div>
+            )
+          )}
+        </CardContent>
+      </Card>
     </div>
   )
 }
