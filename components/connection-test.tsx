@@ -11,7 +11,6 @@ export function ConnectionTest() {
   const [results, setResults] = useState<Record<string, boolean>>({})
 
   const endpoints = [
-    { name: "Produtos para Cadastro", path: "/api/produtos/cadastrar-ia" },
     { name: "GSS/Subgrupos", path: "/api/cadgss" },
     { name: "Departamentos Nível 4", path: "/api/depnv4" },
     { name: "Departamentos", path: "/api/tabdep" },

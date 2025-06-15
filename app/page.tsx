@@ -7,7 +7,6 @@ import { Button } from "@/components/ui/button"
 import { useTheme } from "next-themes"
 import { ApiStatus } from "@/components/api-status"
 import { ConnectionTest } from "@/components/connection-test"
-import { ApiUrlDisplay } from "@/components/api-url-display"
 
 export default function HomePage() {
   const { theme, setTheme } = useTheme()
@@ -40,18 +39,19 @@ export default function HomePage() {
       {/* Seção de Conexão */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-6">
         {/* Card da URL da API */}
-        <Card className="lg:col-span-2 hover:shadow-lg transition-shadow border border-gray-200 hover:border-primary/20 dark:border-gray-700">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-lg">
-              <LinkIcon className="h-5 w-5 text-primary" />
-              <span>URL da API</span>
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <ApiUrlDisplay />
-          </CardContent>
-        </Card>
-
+        <Link href="/configuracoes">
+          <Card className="h-full hover:shadow-lg transition-shadow cursor-pointer border border-gray-200 hover:border-primary/20 dark:border-gray-700">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2 text-lg">
+                <Settings className="h-5 w-5 text-primary" />
+                <span>Configurações</span>
+              </CardTitle>
+              <CardDescription className="line-clamp-2">
+                Gerenciar bancos e arquivos DBF
+              </CardDescription>
+            </CardHeader>
+          </Card>
+        </Link>
         {/* Card de Status */}
         <Card className="hover:shadow-lg transition-shadow border border-gray-200 hover:border-primary/20 dark:border-gray-700">
           <CardHeader>
@@ -107,6 +107,25 @@ export default function HomePage() {
           </Card>
         </Link>
 
+        <Link href="/corrigir-codigo-barras">
+          <Card className="h-full hover:shadow-lg transition-shadow cursor-pointer border border-gray-200 hover:border-primary/20 dark:border-gray-700">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2 text-lg">
+                <BarChart3 className="h-5 w-5 text-primary" />
+                <span>Corrigir Código de Barras</span>
+              </CardTitle>
+              <CardDescription className="line-clamp-2">
+                Ajustar produtos com códigos de barras inválidos
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <p className="text-sm text-muted-foreground line-clamp-2">
+                Classificação automática para produtos de balança e barras inconsistentes
+              </p>
+            </CardContent>
+          </Card>
+        </Link>
+
         <Link href="/tabelas-departamentalizacao">
           <Card className="h-full hover:shadow-lg transition-shadow cursor-pointer border border-gray-200 hover:border-primary/20 dark:border-gray-700">
             <CardHeader>
@@ -126,24 +145,6 @@ export default function HomePage() {
           </Card>
         </Link>
 
-        <Link href="/relatorios">
-          <Card className="h-full hover:shadow-lg transition-shadow cursor-pointer border border-gray-200 hover:border-primary/20 dark:border-gray-700">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-lg">
-                <BarChart3 className="h-5 w-5 text-primary" />
-                <span>Relatórios</span>
-              </CardTitle>
-              <CardDescription className="line-clamp-2">
-                Visualizar dados e estatísticas
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <p className="text-sm text-muted-foreground line-clamp-2">
-                Acompanhe o progresso e métricas
-              </p>
-            </CardContent>
-          </Card>
-        </Link>
       </div>
     </div>
   )

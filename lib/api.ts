@@ -51,6 +51,15 @@ export const api = {
     }
   },
 
+  async getProdutosBalancaIA() {
+    try {
+      return await apiRequest("/api/produtos/balanca-barras-gerado-ia")
+    } catch (error) {
+      console.error("Erro ao buscar produtos:", error)
+      throw new Error(`Erro ao buscar produtos para cadastro. Verifique a conexão com a API: ${API_BASE_URL}`)
+    }
+  },
+
   async cadastrarProdutos(produtos: any[]) {
     try {
       return await apiRequest("/api/produtos/cadastrar", {

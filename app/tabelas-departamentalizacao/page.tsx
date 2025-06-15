@@ -8,9 +8,11 @@ import { Nivel4Tab } from "@/components/departmentalization/nivel4-tab"
 import { DepartamentoTab } from "@/components/departmentalization/departamento-tab"
 import { GrupoTab } from "@/components/departmentalization/grupo-tab"
 import { SubgrupoTab } from "@/components/departmentalization/subgrupo-tab"
+import { ProtectedPage } from "@/components/ProtectedPage"
 
 export default function TabelasDepartamentalizacaoPage() {
   return (
+    <ProtectedPage>
     <div className="container mx-auto p-6">
       <div className="flex items-center gap-4 mb-6">
         <Link href="/">
@@ -54,5 +56,6 @@ export default function TabelasDepartamentalizacaoPage() {
         </CardContent>
       </Card>
     </div>
+    </ProtectedPage>
   )
 }

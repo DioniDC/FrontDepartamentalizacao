@@ -1,15 +1,16 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { toast } from "@/hooks/use-toast"
 import { api } from "@/lib/api"
 import { Plus, Edit } from "lucide-react"
+import { Box, Typography } from "@mui/material"
+import { DataGrid, GridColDef } from "@mui/x-data-grid"
 
 interface Departamento {
   coddepto: number
@@ -29,10 +30,16 @@ export function DepartamentoTab() {
   const [dialogOpen, setDialogOpen] = useState(false)
   const [editingItem, setEditingItem] = useState<Departamento | null>(null)
   const [formData, setFormData] = useState({ coddepto: 0, nomedepto: "", coddepto_nv4: 0 })
+  const [search, setSearch] = useState("")
+
+  const initialized = useRef(false)
 
   useEffect(() => {
-    loadItems()
-    loadNivel4Items()
+    if (!initialized.current) {
+      loadItems()
+      loadNivel4Items()
+      initialized.current = true
+    }
   }, [])
 
   const loadItems = async () => {
@@ -103,12 +110,61 @@ export function DepartamentoTab() {
     return nivel4 ? nivel4.DESCRICAO : "N/A"
   }
 
+  const filteredItems = items.filter((item) => {
+    const searchLower = search.toLowerCase()
+    return (
+      item.coddepto.toString().includes(searchLower) ||
+      item.nomedepto.toLowerCase().includes(searchLower)
+    )
+  })
+
+  const columns: GridColDef[] = [
+    { field: "coddepto", headerName: "Código", width: 100, headerAlign: 'center', align: 'center' },
+    { 
+      field: "nomedepto", 
+      headerName: "Nome", 
+      flex: 1,
+      renderCell: (params) => (
+        <Typography noWrap title={params.value}>{params.value}</Typography>
+      )
+    },
+    { 
+      field: "nivel4", 
+      headerName: "Nível 4", 
+      flex: 1,
+      renderCell: (params: any) => {
+        const desc = getNivel4Description(params.row.CODDEPNV4)
+        return `${params.row.CODDEPNV4} - ${desc}`
+      }
+    },
+    {
+      field: "acoes",
+      headerName: "Ações",
+      width: 100,
+      sortable: false,
+      renderCell: (params) => (
+        <Button variant="outline" size="sm" onClick={() => openDialog(params.row)}>
+          <Edit className="h-4 w-4" />
+        </Button>
+      )
+    }
+  ]
+
+  const rows = filteredItems.map((item) => ({ id: item.coddepto, ...item }))
+
   if (loading) return <div>Carregando...</div>
 
   return (
     <div className="space-y-4">
       <div className="flex justify-between items-center">
         <h3 className="text-lg font-semibold">Departamentos</h3>
+        <Input
+          type="text"
+          placeholder="Buscar por código ou nome..."
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          className="w-80"
+        />
         <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
           <DialogTrigger asChild>
             <Button onClick={() => openDialog()}>
@@ -121,15 +177,17 @@ export function DepartamentoTab() {
               <DialogTitle>{editingItem ? "Editar Departamento" : "Novo Departamento"}</DialogTitle>
             </DialogHeader>
             <div className="space-y-4">
-              <div>
-                <Label htmlFor="coddepto">Código (0 para criar novo)</Label>
-                <Input
-                  id="coddepto"
-                  type="number"
-                  value={formData.coddepto}
-                  onChange={(e) => setFormData({ ...formData, coddepto: Number.parseInt(e.target.value) || 0 })}
-                />
-              </div>
+              {editingItem && (
+                <div>
+                  <Label htmlFor="coddepto">Código</Label>
+                  <Input
+                    id="coddepto"
+                    type="number"
+                    value={formData.coddepto}
+                    onChange={(e) => setFormData({ ...formData, coddepto: Number.parseInt(e.target.value) || 0 })}
+                  />
+                </div>
+              )}
               <div>
                 <Label htmlFor="nomedepto">Nome do Departamento</Label>
                 <Input
@@ -156,40 +214,24 @@ export function DepartamentoTab() {
                   </SelectContent>
                 </Select>
               </div>
-              <Button onClick={handleSave} className="w-full">
-                Salvar
-              </Button>
+              <Button onClick={handleSave} className="w-full">Salvar</Button>
             </div>
           </DialogContent>
         </Dialog>
       </div>
 
-      <Table>
-        <TableHeader>
-          <TableRow>
-            <TableHead>Código</TableHead>
-            <TableHead>Nome</TableHead>
-            <TableHead>Nível 4</TableHead>
-            <TableHead>Ações</TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {items.map((item) => (
-            <TableRow key={item.coddepto}>
-              <TableCell>{item.coddepto}</TableCell>
-              <TableCell>{item.nomedepto}</TableCell>
-              <TableCell>
-                {item.CODDEPNV4} - {getNivel4Description(item.CODDEPNV4)}
-              </TableCell>
-              <TableCell>
-                <Button variant="outline" size="sm" onClick={() => openDialog(item)}>
-                  <Edit className="h-4 w-4" />
-                </Button>
-              </TableCell>
-            </TableRow>
-          ))}
-        </TableBody>
-      </Table>
+      <Box sx={{ maxHeight: '80vh', width: '100%' }}>
+        <DataGrid
+          autoHeight
+          rows={rows}
+          columns={columns}
+          pageSizeOptions={[10, 50, 100]}
+          initialState={{
+            pagination: { paginationModel: { pageSize: 10, page: 0 } }
+          }}
+          disableRowSelectionOnClick
+        />
+      </Box>
     </div>
   )
 }

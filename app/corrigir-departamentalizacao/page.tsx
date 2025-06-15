@@ -11,6 +11,7 @@ import { DataGrid, GridColDef } from "@mui/x-data-grid"
 import { Badge } from "@/components/ui/badge"
 import { LoadingSpinner } from "@/components/ui/loading-spinner"
 import { Box, Typography } from "@mui/material"
+import { ProtectedPage } from "@/components/ProtectedPage"
 
 interface Divergencia {
   codpro01: number
@@ -84,58 +85,57 @@ export default function CorrigirDepartamentalizacaoPage() {
   }
 
   const columns: GridColDef[] = [
-    { field: "codbarra", headerName: "Código Barras", minWidth: 150, flex: 1 },
-    {
-      field: "descpro01",
-      headerName: "Descrição DBF",
-      minWidth: 200,
-      flex: 2,
-      renderCell: (params) => (
-        <Box sx={{ display: 'flex', alignItems: 'center', height: '100%' }}>
-          <Typography noWrap title={params.value}>
-            {params.value}
-          </Typography>
-        </Box>
-      ),
-    },
-    {
-      field: "descpro01_sql",
-      headerName: "Descrição SQL",
-      minWidth: 200,
-      flex: 2,
-      renderCell: (params) => (
-        <Box sx={{ display: 'flex', alignItems: 'center', height: '100%' }}>
-          <Typography noWrap title={params.value}>
-            {params.value}
-          </Typography>
-        </Box>
-      ),
-    },
-    {
-      field: "codpro01",
-      headerName: "Cód. Pro DBF",
-      minWidth: 100,
-      renderCell: (params) => <Badge variant="outline">{params.value}</Badge>,
-    },
-    {
-      field: "codpro01_sql",
-      headerName: "Cód. Pro SQL",
-      minWidth: 100,
-      renderCell: (params) => <Badge variant="outline">{params.value}</Badge>,
-    },
-    {
-      field: "codgss01",
-      headerName: "GSS DBF",
-      minWidth: 100,
-      renderCell: (params) => <Badge variant="secondary">{params.value}</Badge>,
-    },
-    {
-      field: "codgss01_sql",
-      headerName: "GSS SQL",
-      minWidth: 100,
-      renderCell: (params) => <Badge>{params.value}</Badge>,
-    },
-  ]
+  {
+    field: "codbarra",
+    headerName: "Código Barras",
+    width: 200,
+    renderCell: (params) => (
+      <Typography title={params.value}>
+        {params.value}
+      </Typography>
+    ),
+  },
+  {
+    field: "descpro01_sql",
+    headerName: "Descrição SQL",
+    width: 400,
+    renderCell: (params) => (
+      <Typography noWrap title={params.value}>
+        {params.value}
+      </Typography>
+    ),
+  },
+  {
+    field: "descpro01",
+    headerName: "Descrição DBF",
+    width: 400,
+    renderCell: (params) => (
+      <Typography noWrap title={params.value}>
+        {params.value}
+      </Typography>
+    ),
+  },
+  {
+    field: "codgss01_sql",
+    headerName: "SUBGRUPO SQL",
+    width: 130,
+    headerAlign: 'center',
+    align: 'center',
+    renderCell: (params) => (
+      <Typography>{params.value}</Typography>
+    ),
+  },
+  {
+    field: "codgss01",
+    headerName: "SUBGRUPO DBF",
+    width: 130,
+    headerAlign: 'center',
+    align: 'center',
+    renderCell: (params) => (
+      <Typography>{params.value}</Typography>
+    ),
+  },
+]
 
   const rows = divergencias.map((item, index) => ({
     id: `${item.codpro01_sql}-${index}`,
@@ -143,6 +143,7 @@ export default function CorrigirDepartamentalizacaoPage() {
   }))
 
   return (
+    <ProtectedPage>
     <div className="container mx-auto p-6">
       <div className="flex items-center gap-4 mb-6">
         <Link href="/">
@@ -215,5 +216,6 @@ export default function CorrigirDepartamentalizacaoPage() {
         </CardContent>
       </Card>
     </div>
+    </ProtectedPage>
   )
 }

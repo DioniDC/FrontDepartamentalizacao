@@ -1,15 +1,16 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { toast } from "@/hooks/use-toast"
 import { api } from "@/lib/api"
 import { Plus, Edit } from "lucide-react"
+import { Box, Typography } from "@mui/material"
+import { DataGrid, GridColDef } from "@mui/x-data-grid"
 
 interface Grupo {
   codgrupo: number
@@ -30,10 +31,16 @@ export function GrupoTab() {
   const [dialogOpen, setDialogOpen] = useState(false)
   const [editingItem, setEditingItem] = useState<Grupo | null>(null)
   const [formData, setFormData] = useState({ codgrupo: 0, descgrupo: "", coddepto: 0 })
+  const [search, setSearch] = useState("")
+
+  const initialized = useRef(false)
 
   useEffect(() => {
-    loadItems()
-    loadDepartamentos()
+    if (!initialized.current) {
+      loadItems()
+      loadDepartamentos()
+      initialized.current = true
+    }
   }, [])
 
   const loadItems = async () => {
@@ -104,12 +111,61 @@ export function GrupoTab() {
     return depto ? depto.nomedepto : "N/A"
   }
 
+  const filteredItems = items.filter((item) => {
+    const searchLower = search.toLowerCase()
+    return (
+      item.codgrupo.toString().includes(searchLower) ||
+      item.descgrupo.toLowerCase().includes(searchLower)
+    )
+  })
+
+  const columns: GridColDef[] = [
+    { field: "codgrupo", headerName: "Código", width: 100, headerAlign: 'center', align: 'center' },
+    { 
+      field: "descgrupo", 
+      headerName: "Descrição", 
+      flex: 1,
+      renderCell: (params) => (
+        <Typography noWrap title={params.value}>{params.value}</Typography>
+      )
+    },
+    { 
+      field: "departamento", 
+      headerName: "Departamento", 
+      flex: 1,
+      renderCell: (params: any) => {
+        const desc = getDepartamentoName(params.row.coddepto)
+        return `${params.row.coddepto} - ${desc}`
+      }
+    },
+    {
+      field: "acoes",
+      headerName: "Ações",
+      width: 100,
+      sortable: false,
+      renderCell: (params) => (
+        <Button variant="outline" size="sm" onClick={() => openDialog(params.row)}>
+          <Edit className="h-4 w-4" />
+        </Button>
+      )
+    }
+  ]
+
+  const rows = filteredItems.map((item) => ({ id: item.codgrupo, ...item }))
+
   if (loading) return <div>Carregando...</div>
 
   return (
     <div className="space-y-4">
       <div className="flex justify-between items-center">
         <h3 className="text-lg font-semibold">Grupos</h3>
+        <Input
+          type="text"
+          placeholder="Buscar por código ou descrição..."
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          className="w-80"
+        />
         <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
           <DialogTrigger asChild>
             <Button onClick={() => openDialog()}>
@@ -122,15 +178,17 @@ export function GrupoTab() {
               <DialogTitle>{editingItem ? "Editar Grupo" : "Novo Grupo"}</DialogTitle>
             </DialogHeader>
             <div className="space-y-4">
-              <div>
-                <Label htmlFor="codgrupo">Código (0 para criar novo)</Label>
-                <Input
-                  id="codgrupo"
-                  type="number"
-                  value={formData.codgrupo}
-                  onChange={(e) => setFormData({ ...formData, codgrupo: Number.parseInt(e.target.value) || 0 })}
-                />
-              </div>
+              {editingItem && (
+                <div>
+                  <Label htmlFor="codgrupo">Código</Label>
+                  <Input
+                    id="codgrupo"
+                    type="number"
+                    value={formData.codgrupo}
+                    onChange={(e) => setFormData({ ...formData, codgrupo: Number.parseInt(e.target.value) || 0 })}
+                  />
+                </div>
+              )}
               <div>
                 <Label htmlFor="descgrupo">Descrição do Grupo</Label>
                 <Input
@@ -157,40 +215,24 @@ export function GrupoTab() {
                   </SelectContent>
                 </Select>
               </div>
-              <Button onClick={handleSave} className="w-full">
-                Salvar
-              </Button>
+              <Button onClick={handleSave} className="w-full">Salvar</Button>
             </div>
           </DialogContent>
         </Dialog>
       </div>
 
-      <Table>
-        <TableHeader>
-          <TableRow>
-            <TableHead>Código</TableHead>
-            <TableHead>Descrição</TableHead>
-            <TableHead>Departamento</TableHead>
-            <TableHead>Ações</TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {items.map((item) => (
-            <TableRow key={item.codgrupo}>
-              <TableCell>{item.codgrupo}</TableCell>
-              <TableCell>{item.descgrupo}</TableCell>
-              <TableCell>
-                {item.coddepto} - {getDepartamentoName(item.coddepto)}
-              </TableCell>
-              <TableCell>
-                <Button variant="outline" size="sm" onClick={() => openDialog(item)}>
-                  <Edit className="h-4 w-4" />
-                </Button>
-              </TableCell>
-            </TableRow>
-          ))}
-        </TableBody>
-      </Table>
+      <Box sx={{ maxHeight: '80vh', width: '100%' }}>
+        <DataGrid
+          autoHeight
+          rows={rows}
+          columns={columns}
+          pageSizeOptions={[10, 50, 100]}
+          initialState={{
+            pagination: { paginationModel: { pageSize: 10, page: 0 } }
+          }}
+          disableRowSelectionOnClick
+        />
+      </Box>
     </div>
   )
 }
