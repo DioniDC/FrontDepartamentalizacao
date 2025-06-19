@@ -1,33 +1,26 @@
-# Stage 1 - Builder
-FROM node:20-bookworm-slim AS builder
-
-ENV NEXT_TELEMETRY_DISABLED=1
-ENV GENERATE_SOURCEMAP=false
+# Etapa 1: build
+FROM node:20.11.1-bullseye-slim AS builder
 
 WORKDIR /app
 
-COPY package.json package-lock.json ./
-RUN npm ci --no-audit --prefer-offline
+ARG NEXT_PUBLIC_API_URL
+ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL
+
+COPY package*.json ./
+RUN npm install --frozen-lockfile
 
 COPY . .
+RUN npm run build
 
-# Executa o build usando node diretamente com --max-old-space-size
-RUN node --max-old-space-size=8192 node_modules/.bin/next build
+# Etapa 2: NGINX para servir o site estático
+FROM nginx:alpine
 
-# Stage 2 - Runner
-FROM node:20-bookworm-slim
+# Copia a config do NGINX
+COPY ./nginx.conf /etc/nginx/nginx.conf
 
-WORKDIR /app
-
-ENV NODE_ENV=production
-ENV NEXT_TELEMETRY_DISABLED=1
-
-COPY --from=builder /app/package.json ./
-COPY --from=builder /app/package-lock.json ./
-COPY --from=builder /app/node_modules ./node_modules
-COPY --from=builder /app/.next ./.next
-COPY --from=builder /app/public ./public
-COPY --from=builder /app/next.config.mjs ./
+# Copia os arquivos gerados na pasta "out" do Next.js
+COPY --from=builder /app/out /usr/share/nginx/html
 
 EXPOSE 3000
-CMD ["npm", "start"]
+
+CMD ["nginx", "-g", "daemon off;"]

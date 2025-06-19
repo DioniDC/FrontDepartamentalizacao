@@ -1,7 +1,27 @@
-node_modules
-.next
+# Version control
 .git
+
+# Docker configuration files
 Dockerfile
 docker-compose.yml
+
+# Documentation and miscellaneous
 *.md
+
+# Environment variables and secrets
 .env*
+
+# Dependencies and build artifacts
+node_modules
+.next
+.next/cache
+out
+
+# Development tools and configurations
+.vscode
+
+# Logs and temporary files
+*.log
+
+# Ignore this file itself
+.dockerignore
