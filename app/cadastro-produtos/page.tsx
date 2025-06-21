@@ -4,7 +4,7 @@ import ProdutoClassificacaoPage from "@/components/produto-classificacao-page"
 import { api } from "@/lib/api"
 import { ProtectedPage } from "@/components/ProtectedPage"
 
-export default function CadastroProdutosPage() {
+export default function Page() {
   return (
     <ProtectedPage>
       <ProdutoClassificacaoPage

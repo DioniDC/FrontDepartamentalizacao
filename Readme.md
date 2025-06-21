@@ -16,13 +16,18 @@ Nesta abordagem, usamos uma etapa de build com Node para gerar a pasta estática
 
 ```bash
 # Build da imagem (Dockerfile em nginx/Dockerfile)
-docker build --build-arg NEXT_PUBLIC_API_URL=http://localhost:8000 -t dionidias/front-departamentalizacao:latest .
+docker build --build-arg NEXT_PUBLIC_API_URL=http://192.168.237.85:8000 -t dionidias/front-departamentalizacao:latest .
+docker build --build-arg NEXT_PUBLIC_API_URL=http://192.168.237.85:8000 -t dionidias/front-departamentalizacao:1.0 .
 
 # Enviar para o Docker Hub
 docker push dionidias/front-departamentalizacao:latest
 ```
-
+docker build -t dionidias/front-departamentalizacao:1.0 .
+docker push dionidias/front-departamentalizacao:1.0
 ---
+docker build --build-arg NEXT_PUBLIC_API_URL=http://192.168.237.85:8000 -t dionidias/front-departamentalizacao:1.0 .
+docker push dionidias/front-departamentalizacao:1.0
+
 
 ### Benefícios
 

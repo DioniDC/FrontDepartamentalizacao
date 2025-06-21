@@ -19,7 +19,7 @@ export function ConnectionTest() {
 
   const testEndpoint = async (path: string) => {
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"}${path}`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://192.168.237.85:8000"}${path}`, {
         cache: "no-store", // Evitar problemas de cache
       })
       return response.ok

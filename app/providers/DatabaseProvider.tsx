@@ -18,7 +18,7 @@ export function DatabaseProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     const fetchBanco = async () => {
       try {
-        const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"
+        const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://192.168.237.85:8000"
         const res = await fetch(`${apiUrl}/api/database/active`)
         const data = await res.json()
         setBancoAtivo(data.banco_ativo || null)

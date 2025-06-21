@@ -8,7 +8,7 @@ import { toast } from "@/hooks/use-toast"
 import { RefreshCw, Save, Plus, Trash2, Database, Server } from "lucide-react"
 
 // Utilitário para buscar a URL atual
-const getApiUrl = () => process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"
+const getApiUrl = () => process.env.NEXT_PUBLIC_API_URL || "http://192.168.237.85:8000"
 
 export default function ConfiguracoesPage() {
   const [apiUrl, setApiUrl] = useState("")

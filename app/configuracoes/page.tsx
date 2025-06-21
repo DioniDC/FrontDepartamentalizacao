@@ -14,7 +14,7 @@ export default function ConfiguracoesPage() {
   const [selectedFile, setSelectedFile] = useState<File | null>(null)
   const { bancoAtivo, setBancoAtivo } = useDatabase()
 
-  const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"
+  const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://192.168.237.85:8000"
 
   const loadDados = async () => {
     try {

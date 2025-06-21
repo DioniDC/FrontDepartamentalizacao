@@ -1,5 +1,5 @@
 // Configuração da API - fácil de alterar entre localhost e ngrok
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://192.168.237.85:8000"
 
 // Função auxiliar para fazer requests com melhor tratamento de erro
 async function apiRequest(url: string, options: RequestInit = {}) {
