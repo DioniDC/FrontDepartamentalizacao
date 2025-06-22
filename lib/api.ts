@@ -51,6 +51,17 @@ export const api = {
     }
   },
 
+  async corrigirTodosDbf() {
+    try {
+      return await apiRequest("/api/produtos/corrige-todos-dbf", {
+        method: "POST",
+      })
+    } catch (error) {
+      console.error("Erro ao corrigir todos os produtos do DBF:", error)
+      throw new Error(`Erro ao corrigir todos os produtos do DBF. Verifique a conexão com a API: ${API_BASE_URL}`)
+    }   
+  },
+
   async getProdutosBalancaIA() {
     try {
       return await apiRequest("/api/produtos/balanca-barras-gerado-ia")

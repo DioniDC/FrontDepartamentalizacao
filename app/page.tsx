@@ -1,18 +1,20 @@
 "use client"
 
-import Link from "next/link"
+import { useRouter } from "next/navigation"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Package, Settings, Table, BarChart3, Server, Link as LinkIcon, Sun, Moon } from "lucide-react"
+import { Package, Settings, Table, BarChart3, RefreshCw, Sun, Moon } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { useTheme } from "next-themes"
 import { ApiStatus } from "@/components/api-status"
-import { ConnectionTest } from "@/components/connection-test"
 
 export default function HomePage() {
+
   const { theme, setTheme } = useTheme()
+  const router = useRouter()
 
   return (
     <div className="container mx-auto p-4 md:p-6 relative">
+
       {/* Botão de Tema */}
       <div className="absolute top-4 right-4">
         <Button
@@ -21,131 +23,158 @@ export default function HomePage() {
           onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
           className="rounded-full hover:bg-gray-200 dark:hover:bg-gray-700"
         >
-          {theme === "dark" ? (
-            <Sun className="h-5 w-5" />
-          ) : (
-            <Moon className="h-5 w-5" />
-          )}
+          {theme === "dark" ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
           <span className="sr-only">Alternar tema</span>
         </Button>
       </div>
 
       {/* Cabeçalho */}
-      <div className="mb-8 pt-10">
+      <div className="mb-8 pt-10 text-center md:text-left">
         <h1 className="text-2xl md:text-3xl font-bold mb-2">Sistema de Departamentalização</h1>
         <p className="text-muted-foreground">Gerencie produtos e departamentos de forma eficiente</p>
+
+        {/* Status do Serviço */}
+        <div className="mt-4 flex justify-center md:justify-start">
+          <ApiStatus />
+        </div>
       </div>
 
-      {/* Seção de Conexão */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-6">
-        {/* Card da URL da API */}
-        <Link href="/configuracoes">
-          <Card className="h-full hover:shadow-lg transition-shadow cursor-pointer border border-gray-200 hover:border-primary/20 dark:border-gray-700">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-lg">
-                <Settings className="h-5 w-5 text-primary" />
-                <span>Configurações</span>
-              </CardTitle>
-              <CardDescription className="line-clamp-2">
-                Gerenciar bancos e arquivos DBF
-              </CardDescription>
-            </CardHeader>
-          </Card>
-        </Link>
-        {/* Card de Status */}
-        <Card className="hover:shadow-lg transition-shadow border border-gray-200 hover:border-primary/20 dark:border-gray-700">
+      {/* 3 PRINCIPAIS CARDS */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+
+        {/* 1. Cadastro de Produtos */}
+        <Card
+          onClick={() => router.push("/cadastro-produtos")}
+          className="h-full hover:shadow-lg transition-shadow cursor-pointer border border-gray-200 hover:border-primary/20 dark:border-gray-700"
+        >
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-lg">
-              <Server className="h-5 w-5 text-primary" />
-              <span>Status do Serviço</span>
+              <Package className="h-5 w-5 text-primary" />
+              <span>Cadastro de Produtos</span>
             </CardTitle>
+            <CardDescription className="line-clamp-2">
+              Cadastrar produtos com códigos de barras válidos
+            </CardDescription>
           </CardHeader>
-          <CardContent className="space-y-4">
-            <ApiStatus />
-            <ConnectionTest />
+          <CardContent>
+            <p className="text-sm text-muted-foreground">
+              Produtos do DBF não encontrados no MySQL
+            </p>
           </CardContent>
         </Card>
-      </div>
 
-      {/* Cards de Funcionalidades */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <Link href="/cadastro-produtos">
-          <Card className="h-full hover:shadow-lg transition-shadow cursor-pointer border border-gray-200 hover:border-primary/20 dark:border-gray-700">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-lg">
-                <Package className="h-5 w-5 text-primary" />
-                <span>Cadastro de Produtos</span>
-              </CardTitle>
-              <CardDescription className="line-clamp-2">
-                Cadastrar produtos com códigos de barras válidos
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <p className="text-sm text-muted-foreground line-clamp-2">
-                Gerencie produtos do DBF não encontrados no MySQL
-              </p>
-            </CardContent>
-          </Card>
-        </Link>
+        {/* 2. Corrigir Código de Barras */}
+        <Card
+          onClick={() => router.push("/corrigir-codigo-barras")}
+          className="h-full hover:shadow-lg transition-shadow cursor-pointer border border-gray-200 hover:border-primary/20 dark:border-gray-700"
+        >
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-lg">
+              <BarChart3 className="h-5 w-5 text-primary" />
+              <span>Corrigir Código de Barras</span>
+            </CardTitle>
+            <CardDescription className="line-clamp-2">
+              Ajustar produtos de balança ou com códigos de barras gerados
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <p className="text-sm text-muted-foreground">
+              (Apenas corrige o DBF com sugestão da IA)
+            </p>
+          </CardContent>
+        </Card>
 
-        <Link href="/corrigir-departamentalizacao">
-          <Card className="h-full hover:shadow-lg transition-shadow cursor-pointer border border-gray-200 hover:border-primary/20 dark:border-gray-700">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-lg">
-                <Settings className="h-5 w-5 text-primary" />
-                <span>Corrigir Departamentalização</span>
-              </CardTitle>
-              <CardDescription className="line-clamp-2">
-                Corrigir subgrupos de produtos conforme MySQL
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <p className="text-sm text-muted-foreground line-clamp-2">
-                Verificar e corrigir divergências de produtos
-              </p>
-            </CardContent>
-          </Card>
-        </Link>
-
-        <Link href="/corrigir-codigo-barras">
-          <Card className="h-full hover:shadow-lg transition-shadow cursor-pointer border border-gray-200 hover:border-primary/20 dark:border-gray-700">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-lg">
-                <BarChart3 className="h-5 w-5 text-primary" />
-                <span>Corrigir Código de Barras</span>
-              </CardTitle>
-              <CardDescription className="line-clamp-2">
-                Ajustar produtos com códigos de barras inválidos
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <p className="text-sm text-muted-foreground line-clamp-2">
-                Classificação automática para produtos de balança e barras inconsistentes
-              </p>
-            </CardContent>
-          </Card>
-        </Link>
-
-        <Link href="/tabelas-departamentalizacao">
-          <Card className="h-full hover:shadow-lg transition-shadow cursor-pointer border border-gray-200 hover:border-primary/20 dark:border-gray-700">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-lg">
-                <Table className="h-5 w-5 text-primary" />
-                <span>Tabelas de Departamentalização</span>
-              </CardTitle>
-              <CardDescription className="line-clamp-2">
-                Gerenciar níveis hierárquicos
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <p className="text-sm text-muted-foreground line-clamp-2">
-                Nível 4, Departamento, Grupo e Subgrupo
-              </p>
-            </CardContent>
-          </Card>
-        </Link>
+        {/* 3. Corrigir Departamentalização */}
+        <Card
+          onClick={() => router.push("/corrigir-departamentalizacao")}
+          className="h-full hover:shadow-lg transition-shadow cursor-pointer border border-gray-200 hover:border-primary/20 dark:border-gray-700"
+        >
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-lg">
+              <Settings className="h-5 w-5 text-primary" />
+              <span>Corrigir Departamentalização</span>
+            </CardTitle>
+            <CardDescription className="line-clamp-2">
+              Corrigir subgrupos de produtos conforme está no MySQL
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <p className="text-sm text-muted-foreground">
+              (Importante passar antes pela opção "Cadastro de Produtos")
+            </p>
+          </CardContent>
+        </Card>
 
       </div>
+
+      {/* CARDS SECUNDÁRIOS */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+
+        {/* Corrigir Todos Produtos (DBF) */}
+        <Card
+          onClick={() => router.push("/corrigir-todos-produtos-apenas-dbf")}
+          className="h-full hover:shadow-lg transition-shadow cursor-pointer border border-gray-200 hover:border-primary/20 dark:border-gray-700"
+        >
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-lg">
+              <RefreshCw className="h-5 w-5 text-primary" />
+              <span>Corrigir Todos Produtos (DBF)</span>
+            </CardTitle>
+            <CardDescription className="line-clamp-2">
+              Atualiza CADPRO.DBF com base no CADGSS.DBF
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <p className="text-sm text-muted-foreground">
+              Sincronização completa dos produtos apenas no DBF
+            </p>
+          </CardContent>
+        </Card>
+
+        {/* Tabelas de Departamentalização */}
+        <Card
+          onClick={() => router.push("/tabelas-departamentalizacao")}
+          className="h-full hover:shadow-lg transition-shadow cursor-pointer border border-gray-200 hover:border-primary/20 dark:border-gray-700"
+        >
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-lg">
+              <Table className="h-5 w-5 text-primary" />
+              <span>Tabelas de Departamentalização</span>
+            </CardTitle>
+            <CardDescription className="line-clamp-2">
+              Gerenciar níveis hierárquicos
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <p className="text-sm text-muted-foreground">
+              Nível 4, Departamento, Grupo e Subgrupo
+            </p>
+          </CardContent>
+        </Card>
+
+        {/* Configurações */}
+        <Card
+          onClick={() => router.push("/configuracoes")}
+          className="h-full hover:shadow-lg transition-shadow cursor-pointer border border-gray-200 hover:border-primary/20 dark:border-gray-700"
+        >
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-lg">
+              <Settings className="h-5 w-5 text-primary" />
+              <span>Configurações</span>
+            </CardTitle>
+            <CardDescription className="line-clamp-2">
+              Configurações do sistema e conexões
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <p className="text-sm text-muted-foreground">
+              Gerenciar bancos e arquivos DBF
+            </p>
+          </CardContent>
+        </Card>
+
+      </div>
+
     </div>
   )
 }

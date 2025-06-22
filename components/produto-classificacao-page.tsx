@@ -141,6 +141,7 @@ export default function ProdutoClassificacaoPage({ titulo, getProdutos, processa
       toast({
         title: "Sucesso",
         description: `Foram processados ${result.total_cadastrados} produtos.`,
+        duration: 2000
       })
 
       loadProdutos()
@@ -174,6 +175,7 @@ export default function ProdutoClassificacaoPage({ titulo, getProdutos, processa
       toast({
         title: "Sucesso",
         description: `Foram processados ${result.total_cadastrados} produtos.`,
+        duration: 2000
       })
 
       const idsProcessados = new Set(produtosVisiveis.map(p => p.codpro01))
@@ -369,16 +371,6 @@ export default function ProdutoClassificacaoPage({ titulo, getProdutos, processa
         <CardHeader className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
           <div className="flex items-center gap-4">
             <span>Produtos ({totalRestante}) — Processados: {totalCadastrados}</span>
-            <Button
-              onClick={processarVisiveis}
-              disabled={processing || produtos.length === 0}
-              variant="default"
-              size="sm"
-              className="flex items-center bg-green-600 hover:bg-green-700 text-white"
-            >
-              <Save className="h-4 w-4 mr-2" />
-              {processing ? "Processando tela..." : "Processar Tela"}
-            </Button>
           </div>
         </CardHeader>
 
@@ -391,19 +383,36 @@ export default function ProdutoClassificacaoPage({ titulo, getProdutos, processa
               <p>Nenhum produto encontrado</p>
             </div>
           ) : (
-            <Box sx={{ maxHeight: "70vh", width: "100%" }}>
-              <DataGrid
-                rows={rows}
-                columns={columns}
-                pageSizeOptions={[10, 25, 50]}
-                paginationModel={paginationModel}
-                onPaginationModelChange={setPaginationModel}
-                disableRowSelectionOnClick
-                autoHeight
-              />
-            </Box>
+            <>
+              <Box sx={{ maxHeight: "70vh", width: "100%" }}>
+                <DataGrid
+                  rows={rows}
+                  columns={columns}
+                  pageSizeOptions={[10, 25, 50]}
+                  paginationModel={paginationModel}
+                  onPaginationModelChange={setPaginationModel}
+                  disableRowSelectionOnClick
+                  autoHeight
+                />
+              </Box>
+          
+              {/* Botão Processar Tela embaixo */}
+              <div className="flex justify-center mt-6">
+                <Button
+                  onClick={processarVisiveis}
+                  disabled={processing || produtos.length === 0}
+                  variant="default"
+                  size="lg"
+                  className="flex items-center bg-green-600 hover:bg-green-700 text-white"
+                >
+                  <Save className="h-4 w-4 mr-2" />
+                  {processing ? "Processando tela..." : "Processar Tela"}
+                </Button>
+              </div>
+            </>
           )}
         </CardContent>
+
       </Card>
 
       <Dialog open={confirmDialogOpen} onOpenChange={setConfirmDialogOpen}>
