@@ -3,10 +3,18 @@ FROM node:20.11.1-bullseye-slim AS builder
 
 WORKDIR /app
 
+# Copia os arquivos de ambiente (opcional, dependendo da sua configuração)
+COPY .env .env
+
 COPY package*.json ./
 RUN npm install --frozen-lockfile
 
 COPY . .
+
+# Passa as variáveis de ambiente para o build
+ARG NEXT_PUBLIC_API_URL
+ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL
+
 RUN npm run build
 
 # Etapa 2: NGINX para servir o site estático

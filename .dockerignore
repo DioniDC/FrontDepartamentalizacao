@@ -8,9 +8,6 @@ docker-compose.yml
 # Documentation and miscellaneous
 *.md
 
-# Environment variables and secrets
-.env*
-
 # Dependencies and build artifacts
 node_modules
 .next

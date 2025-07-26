@@ -64,25 +64,47 @@ export default function CorrigirDepartamentalizacaoPage() {
   }
 
   const corrigirDivergencias = async () => {
-    if (divergencias.length === 0) return
-    setCorrecting(true)
+    if (divergencias.length === 0) return;
+
+    setCorrecting(true);
+
+    const chunkSize = 1000;
+    const total = divergencias.length;
+    let sucesso = 0;
+    let falhas = 0;
+
+for (let i = 0; i < total; i += chunkSize) {
+  const loteOriginal = divergencias.slice(i, i + chunkSize);
+
+    const lote = loteOriginal.map(d => ({
+      codpro01: d.codpro01,
+      descpro01: d.descpro01,
+      codgss01: d.codgss01_sql,
+    }));
+  
     try {
-      await api.atualizarCodgss(divergencias)
-      toast({
-        title: "Sucesso",
-        description: `${divergencias.length} produtos foram atualizados`,
-      })
-      await verificarDivergencias()
-    } catch {
+      await api.atualizarCodgss(lote);
+      sucesso += lote.length;
+    } catch (err) {
+      falhas += lote.length;
       toast({
         title: "Erro",
-        description: "Erro ao corrigir divergências",
+        description: `Falha ao processar lote ${i / chunkSize + 1}`,
         variant: "destructive",
-      })
-    } finally {
-      setCorrecting(false)
+      });
     }
+  
+    await new Promise(resolve => setTimeout(resolve, 0));
   }
+
+    toast({
+      title: "Atualização concluída",
+      description: `${sucesso} atualizados com sucesso${falhas > 0 ? `, ${falhas} falharam` : ""}`,
+    });
+
+    setCorrecting(false);
+    await verificarDivergencias();
+  };
 
   const columns: GridColDef[] = [
   {

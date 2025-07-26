@@ -1,4 +1,8 @@
 // Configuração da API - fácil de alterar entre localhost e ngrok
+
+import { ProdutosIAResponse } from "@/app/produtos-cadastrados/type"
+
+//const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://192.168.237.85:8000"
 
 // Função auxiliar para fazer requests com melhor tratamento de erro
@@ -42,7 +46,7 @@ async function apiRequest(url: string, options: RequestInit = {}) {
 
 export const api = {
   // Produtos
-  async getProdutosCadastrarIA() {
+  async getProdutosCadastrarIA(): Promise<ProdutosIAResponse> {
     try {
       return await apiRequest("/api/produtos/cadastrar-ia")
     } catch (error) {
@@ -51,7 +55,7 @@ export const api = {
     }
   },
 
-  async corrigirTodosDbf() {
+  async corrigirTodosDbf(): Promise<ProdutosIAResponse> {
     try {
       return await apiRequest("/api/produtos/corrige-todos-dbf", {
         method: "POST",
@@ -62,7 +66,7 @@ export const api = {
     }   
   },
 
-  async getProdutosBalancaIA() {
+  async getProdutosBalancaIA(): Promise<ProdutosIAResponse> {
     try {
       return await apiRequest("/api/produtos/balanca-barras-gerado-ia")
     } catch (error) {

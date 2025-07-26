@@ -4,7 +4,7 @@ import { useEffect, useState } from "react"
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
-import { Upload, Database, HardDrive, Trash, Check } from "lucide-react"
+import { Upload, Database, HardDrive, Trash, Download } from "lucide-react"
 import { toast } from "@/hooks/use-toast"
 import { useDatabase } from "../providers/DatabaseProvider"
 
@@ -82,82 +82,127 @@ export default function ConfiguracoesPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ nome_banco: nome }),
       })
-  
-if (res.ok) {
-  setBancoAtivo(nome)
-  toast({ title: `Banco ${nome} selecionado` })
-} else {
-  const err = await res.json()
 
-  let description = "Falha ao selecionar banco"
-  if (err?.detail) {
-    if (Array.isArray(err.detail)) {
-      description = err.detail.map((d: any) => d.msg).join(", ")
-    } else {
-      description = err.detail
-    }
-  }
+      if (res.ok) {
+        setBancoAtivo(nome)
+        toast({ title: `Banco ${nome} selecionado` })
+      } else {
+        const err = await res.json()
 
-  toast({
-    title: "Erro",
-    description,
-    variant: "destructive",
-  })
-}
+        let description = "Falha ao selecionar banco"
+        if (err?.detail) {
+          if (Array.isArray(err.detail)) {
+            description = err.detail.map((d: any) => d.msg).join(", ")
+          } else {
+            description = err.detail
+          }
+        }
+
+        toast({
+          title: "Erro",
+          description,
+          variant: "destructive",
+        })
+      }
     } catch {
       toast({ title: "Erro de conexão", variant: "destructive" })
     }
   }
 
+  const handleBackupSQL = () => {
+    if (!bancoAtivo) {
+      toast({ title: "Selecione um banco de dados antes de fazer o backup", variant: "destructive" })
+      return
+    }
+    window.open(`${apiUrl}/api/database/backup`, "_blank")
+  }
+
+  const handleDownloadDBFs = () => {
+    if (dbfs.length === 0) {
+      toast({ title: "Nenhum arquivo DBF disponível para download", variant: "destructive" })
+      return
+    }
+    window.open(`${apiUrl}/api/dbf/download`, "_blank")
+  }
+
   return (
-      <div className="max-w-2xl mx-auto py-4 space-y-4">
+    <div className="max-w-4xl mx-auto py-4 space-y-4">
 
-        <Card>
-          <CardHeader><CardTitle>Bancos de Dados</CardTitle></CardHeader>
-          <CardContent>
-            <ul className="space-y-1">
-              {bancos.map(db => (
-                <li key={db} className="flex items-center justify-between">
-                  <span className="flex items-center gap-2">
-                    <Database className="h-4 w-4" /> {db}
-                  </span>
-                  {bancoAtivo === db ? (
-                    <Button variant={bancoAtivo === db ? "default" : "outline"} 
-                      className={bancoAtivo === db ? "bg-green-500 text-white hover:bg-green-600" : ""}>
-                      Usar
-                    </Button>
-                  ) : (
-                    <Button variant="outline" size="sm" onClick={() => handleSelecionarBanco(db)}>Usar</Button>
-                  )}
-                </li>
-              ))}
-            </ul>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader><CardTitle>Arquivos DBF</CardTitle></CardHeader>
-          <CardContent>
-            <ul className="space-y-1 mb-3">
-              {dbfs.map(file => (
-                <li key={file} className="flex items-center justify-between">
-                  <span className="flex items-center gap-2"><HardDrive className="h-4 w-4" /> {file}</span>
-                  <Button size="sm" variant="destructive" onClick={() => handleDelete(file)}>
-                    <Trash className="h-4 w-4" />
+      {/* Bancos */}
+      <Card>
+        <CardHeader><CardTitle>Bancos de Dados</CardTitle></CardHeader>
+        <CardContent>
+          <ul className="space-y-1">
+            {bancos.map(db => (
+              <li key={db} className="flex items-center justify-between">
+                <span className="flex items-center gap-2">
+                  <Database className="h-4 w-4" /> {db}
+                </span>
+                {bancoAtivo === db ? (
+                  <Button variant="default" className="bg-green-500 text-white hover:bg-green-600">
+                    Usar
                   </Button>
-                </li>
-              ))}
-            </ul>
+                ) : (
+                  <Button variant="outline" size="sm" onClick={() => handleSelecionarBanco(db)}>Usar</Button>
+                )}
+              </li>
+            ))}
+          </ul>
+        </CardContent>
+      </Card>
 
-            <div className="flex items-center gap-2">
-              <Input type="file" accept=".dbf" onChange={(e) => setSelectedFile(e.target.files?.[0] || null)} />
-              <Button onClick={handleUpload} disabled={!selectedFile}>
-                <Upload className="h-4 w-4 mr-1" />Enviar
+      {/* DBFs */}
+      <Card>
+        <CardHeader><CardTitle>Arquivos DBF</CardTitle></CardHeader>
+        <CardContent>
+          <ul className="space-y-1 mb-3">
+            {dbfs.map(file => (
+              <li key={file} className="flex items-center justify-between">
+                <span className="flex items-center gap-2"><HardDrive className="h-4 w-4" /> {file}</span>
+                <Button size="sm" variant="destructive" onClick={() => handleDelete(file)}>
+                  <Trash className="h-4 w-4" />
+                </Button>
+              </li>
+            ))}
+          </ul>
+
+          <div className="flex items-center gap-2">
+            <Input type="file" accept=".dbf" onChange={(e) => setSelectedFile(e.target.files?.[0] || null)} />
+            <Button onClick={handleUpload} disabled={!selectedFile}>
+              <Upload className="h-4 w-4 mr-1" />Enviar
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* BACKUP */}
+      <Card>
+        <CardHeader><CardTitle>Backup</CardTitle></CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            {/* SQL Backup */}
+            <div className="flex flex-col space-y-2 border p-3 rounded-md">
+              <h3 className="font-semibold">Backup SQL</h3>
+              <p className="text-sm text-muted-foreground">Gera backup do banco selecionado</p>
+              <Button onClick={handleBackupSQL}>
+                <Download className="h-4 w-4 mr-2" />
+                Backup Banco {bancoAtivo || "?"}
               </Button>
             </div>
-          </CardContent>
-        </Card>
 
-      </div>
+            {/* DBF Backup */}
+            <div className="flex flex-col space-y-2 border p-3 rounded-md">
+              <h3 className="font-semibold">Backup DBFs</h3>
+              <p className="text-sm text-muted-foreground">Baixa todos os arquivos DBF zipados</p>
+              <Button onClick={handleDownloadDBFs}>
+                <Download className="h-4 w-4 mr-2" />
+                Baixar DBFs ZIP
+              </Button>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+    </div>
   )
 }
