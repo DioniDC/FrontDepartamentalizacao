@@ -4,7 +4,17 @@ import { useEffect, useState } from "react"
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
-import { Upload, Database, HardDrive, Trash, Download } from "lucide-react"
+import { Upload, Database, HardDrive, Trash, Download, Package, Loader2 } from "lucide-react"
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog"
 import { toast } from "@/hooks/use-toast"
 import { useDatabase } from "../providers/DatabaseProvider"
 
@@ -12,6 +22,8 @@ export default function ConfiguracoesPage() {
   const [bancos, setBancos] = useState<string[]>([])
   const [dbfs, setDbfs] = useState<string[]>([])
   const [selectedFile, setSelectedFile] = useState<File | null>(null)
+  const [showGerarBaseDialog, setShowGerarBaseDialog] = useState(false)
+  const [isGerandoBase, setIsGerandoBase] = useState(false)
   const { bancoAtivo, setBancoAtivo } = useDatabase()
 
   const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://192.168.237.85:8000"
@@ -125,83 +137,190 @@ export default function ConfiguracoesPage() {
     window.open(`${apiUrl}/api/dbf/download`, "_blank")
   }
 
+  const handleGerarBaseDepartamentalizacao = async () => {
+    if (!bancoAtivo) {
+      toast({ title: "Selecione um banco de dados antes de gerar a base", variant: "destructive" })
+      return
+    }
+
+    setIsGerandoBase(true)
+    try {
+      window.open(`${apiUrl}/api/gerar-base-departamentalizacao`, "_blank")
+      toast({ title: "Download da base iniciado com sucesso!" })
+    } catch (error) {
+      toast({ title: "Erro ao gerar base", description: "Ocorreu um erro ao gerar a base de departamentalização", variant: "destructive" })
+    } finally {
+      setIsGerandoBase(false)
+      setShowGerarBaseDialog(false)
+    }
+  }
+
   return (
-    <div className="max-w-4xl mx-auto py-4 space-y-4">
+    <div className="max-w-6xl mx-auto py-3 px-2">
+      {/* Grid principal - 2 colunas */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
 
-      {/* Bancos */}
-      <Card>
-        <CardHeader><CardTitle>Bancos de Dados</CardTitle></CardHeader>
-        <CardContent>
-          <ul className="space-y-1">
-            {bancos.map(db => (
-              <li key={db} className="flex items-center justify-between">
-                <span className="flex items-center gap-2">
-                  <Database className="h-4 w-4" /> {db}
-                </span>
-                {bancoAtivo === db ? (
-                  <Button variant="default" className="bg-green-500 text-white hover:bg-green-600">
-                    Usar
+        {/* Coluna Esquerda - Bancos de Dados */}
+        <Card className="flex flex-col">
+          <CardHeader className="py-3 px-4">
+            <CardTitle className="text-base flex items-center gap-2">
+              <Database className="h-4 w-4" />
+              Bancos de Dados
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="flex-1 px-4 pb-3">
+            <ul className="space-y-1 max-h-48 overflow-y-auto pr-1">
+              {bancos.map(db => (
+                <li key={db} className="flex items-center justify-between py-1 px-2 rounded hover:bg-muted/50">
+                  <span className="text-sm truncate flex-1">{db}</span>
+                  {bancoAtivo === db ? (
+                    <Button size="sm" variant="default" className="bg-green-500 text-white hover:bg-green-600 h-7 text-xs">
+                      Ativo
+                    </Button>
+                  ) : (
+                    <Button variant="outline" size="sm" className="h-7 text-xs" onClick={() => handleSelecionarBanco(db)}>
+                      Usar
+                    </Button>
+                  )}
+                </li>
+              ))}
+            </ul>
+          </CardContent>
+        </Card>
+
+        {/* Coluna Direita - Arquivos DBF */}
+        <Card className="flex flex-col">
+          <CardHeader className="py-3 px-4">
+            <CardTitle className="text-base flex items-center gap-2">
+              <HardDrive className="h-4 w-4" />
+              Arquivos DBF
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="flex-1 px-4 pb-3">
+            <ul className="space-y-1 max-h-32 overflow-y-auto pr-1 mb-2">
+              {dbfs.map(file => (
+                <li key={file} className="flex items-center justify-between py-1 px-2 rounded hover:bg-muted/50">
+                  <span className="text-sm truncate flex-1">{file}</span>
+                  <Button size="sm" variant="ghost" className="h-7 w-7 p-0 text-destructive hover:text-destructive hover:bg-destructive/10" onClick={() => handleDelete(file)}>
+                    <Trash className="h-3.5 w-3.5" />
                   </Button>
-                ) : (
-                  <Button variant="outline" size="sm" onClick={() => handleSelecionarBanco(db)}>Usar</Button>
-                )}
-              </li>
-            ))}
-          </ul>
-        </CardContent>
-      </Card>
+                </li>
+              ))}
+            </ul>
+            <div className="flex items-center gap-2 pt-2 border-t">
+              <Input type="file" accept=".dbf" className="h-8 text-xs" onChange={(e) => setSelectedFile(e.target.files?.[0] || null)} />
+              <Button size="sm" className="h-8" onClick={handleUpload} disabled={!selectedFile}>
+                <Upload className="h-3.5 w-3.5 mr-1" />Enviar
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
 
-      {/* DBFs */}
-      <Card>
-        <CardHeader><CardTitle>Arquivos DBF</CardTitle></CardHeader>
-        <CardContent>
-          <ul className="space-y-1 mb-3">
-            {dbfs.map(file => (
-              <li key={file} className="flex items-center justify-between">
-                <span className="flex items-center gap-2"><HardDrive className="h-4 w-4" /> {file}</span>
-                <Button size="sm" variant="destructive" onClick={() => handleDelete(file)}>
-                  <Trash className="h-4 w-4" />
-                </Button>
-              </li>
-            ))}
-          </ul>
-
-          <div className="flex items-center gap-2">
-            <Input type="file" accept=".dbf" onChange={(e) => setSelectedFile(e.target.files?.[0] || null)} />
-            <Button onClick={handleUpload} disabled={!selectedFile}>
-              <Upload className="h-4 w-4 mr-1" />Enviar
+        {/* Backup SQL */}
+        <Card>
+          <CardHeader className="py-3 px-4">
+            <CardTitle className="text-base flex items-center gap-2">
+              <Download className="h-4 w-4" />
+              Backup SQL
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="px-4 pb-3">
+            <p className="text-xs text-muted-foreground mb-2">Gera backup do banco selecionado</p>
+            <Button size="sm" className="w-full" onClick={handleBackupSQL}>
+              <Download className="h-3.5 w-3.5 mr-2" />
+              Backup {bancoAtivo || "Nenhum banco"}
             </Button>
-          </div>
-        </CardContent>
-      </Card>
+          </CardContent>
+        </Card>
 
-      {/* BACKUP */}
-      <Card>
-        <CardHeader><CardTitle>Backup</CardTitle></CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            {/* SQL Backup */}
-            <div className="flex flex-col space-y-2 border p-3 rounded-md">
-              <h3 className="font-semibold">Backup SQL</h3>
-              <p className="text-sm text-muted-foreground">Gera backup do banco selecionado</p>
-              <Button onClick={handleBackupSQL}>
-                <Download className="h-4 w-4 mr-2" />
-                Backup Banco {bancoAtivo || "?"}
+        {/* Backup DBFs */}
+        <Card>
+          <CardHeader className="py-3 px-4">
+            <CardTitle className="text-base flex items-center gap-2">
+              <Download className="h-4 w-4" />
+              Backup DBFs
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="px-4 pb-3">
+            <p className="text-xs text-muted-foreground mb-2">Baixa todos os arquivos DBF zipados</p>
+            <Button size="sm" className="w-full" onClick={handleDownloadDBFs}>
+              <Download className="h-3.5 w-3.5 mr-2" />
+              Baixar DBFs ZIP
+            </Button>
+          </CardContent>
+        </Card>
+
+        {/* Gerar Base - ocupa as 2 colunas */}
+        <Card className="lg:col-span-2">
+          <CardHeader className="py-3 px-4">
+            <CardTitle className="text-base flex items-center gap-2">
+              <Package className="h-4 w-4" />
+              Gerar Base com Departamentalização
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="px-4 pb-3">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+              <p className="text-xs text-muted-foreground">
+                Exporta as tabelas de departamentalização do banco SQL para arquivos DBF
+              </p>
+              <Button size="sm" onClick={() => setShowGerarBaseDialog(true)} disabled={!bancoAtivo || isGerandoBase}>
+                {isGerandoBase ? (
+                  <>
+                    <Loader2 className="h-3.5 w-3.5 mr-2 animate-spin" />
+                    Gerando...
+                  </>
+                ) : (
+                  <>
+                    <Package className="h-3.5 w-3.5 mr-2" />
+                    Gerar Base
+                  </>
+                )}
               </Button>
             </div>
+          </CardContent>
+        </Card>
+      </div>
 
-            {/* DBF Backup */}
-            <div className="flex flex-col space-y-2 border p-3 rounded-md">
-              <h3 className="font-semibold">Backup DBFs</h3>
-              <p className="text-sm text-muted-foreground">Baixa todos os arquivos DBF zipados</p>
-              <Button onClick={handleDownloadDBFs}>
-                <Download className="h-4 w-4 mr-2" />
-                Baixar DBFs ZIP
-              </Button>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
+      {/* Dialog de Confirmação */}
+      <AlertDialog open={showGerarBaseDialog} onOpenChange={setShowGerarBaseDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Gerar Base com Departamentalização</AlertDialogTitle>
+            <AlertDialogDescription asChild>
+              <div className="space-y-3">
+                <p>Será gerado um arquivo <code className="bg-muted px-1 rounded">.zip</code> contendo:</p>
+
+                <div className="space-y-2">
+                  <p className="text-xs font-semibold text-muted-foreground uppercase">Da pasta DBF (existentes):</p>
+                  <ul className="list-disc list-inside space-y-1 text-sm ml-2">
+                    <li><code className="bg-muted px-1 rounded">cadpro.dbf</code> - Cadastro de produtos</li>
+                    <li><code className="bg-muted px-1 rounded">arqbar.dbf</code> - Códigos de barras</li>
+                  </ul>
+                </div>
+
+                <div className="space-y-2">
+                  <p className="text-xs font-semibold text-muted-foreground uppercase">Gerados do SQL:</p>
+                  <ul className="list-disc list-inside space-y-1 text-sm ml-2">
+                    <li><code className="bg-muted px-1 rounded">tabgru.dbf</code> - Grupos</li>
+                    <li><code className="bg-muted px-1 rounded">cadgss.dbf</code> - Subgrupos</li>
+                    <li><code className="bg-muted px-1 rounded">tabdep.dbf</code> - Departamentos</li>
+                    <li><code className="bg-muted px-1 rounded">depnv4.dbf</code> - Nível 4</li>
+                    <li><code className="bg-muted px-1 rounded">depnv5.dbf</code> - Nível 5</li>
+                  </ul>
+                </div>
+
+                <p className="text-sm font-medium">Banco selecionado: <span className="text-primary">{bancoAtivo}</span></p>
+              </div>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction onClick={handleGerarBaseDepartamentalizacao} disabled={isGerandoBase}>
+              {isGerandoBase ? "Gerando..." : "Gerar e Baixar ZIP"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
     </div>
   )

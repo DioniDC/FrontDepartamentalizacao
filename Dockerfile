@@ -3,9 +3,6 @@ FROM node:20.11.1-bullseye-slim AS builder
 
 WORKDIR /app
 
-# Copia os arquivos de ambiente (opcional, dependendo da sua configuração)
-COPY .env .env
-
 COPY package*.json ./
 RUN npm install --frozen-lockfile
 
