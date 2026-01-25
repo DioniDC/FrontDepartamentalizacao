@@ -35,7 +35,7 @@ export default function ProdutosCadastradosPage() {
   const [loading, setLoading] = useState(false)
 
   const limit = 15
-  const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://192.168.237.85:8000"
+  const apiUrl = ""
 
   useEffect(() => {
     setLoading(true)

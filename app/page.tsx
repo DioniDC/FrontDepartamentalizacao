@@ -11,7 +11,7 @@ import { ApiStatus } from "@/components/api-status"
 export default function HomePage() {
   const { theme, setTheme } = useTheme()
   const [totalProdutos, setTotalProdutos] = useState<number | null>(null)
-  const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://192.168.237.85:8000"
+  const apiUrl = ""
 
   useEffect(() => {
     fetch(`${apiUrl}/api/produtos/cadastrados?limit=1`)

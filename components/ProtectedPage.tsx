@@ -8,7 +8,7 @@ export function ProtectedPage({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://192.168.237.85:8000"
+    const apiUrl = ""
     fetch(`${apiUrl}/api/database/active`)
       .then(res => res.json())
       .then(data => {

@@ -2,8 +2,8 @@
 
 import { ProdutosIAResponse } from "@/app/produtos-cadastrados/type"
 
-//const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://192.168.237.85:8000"
+// URL relativa - o nginx roteia /api/* para o backend
+const API_BASE_URL = ""
 
 // Função auxiliar para fazer requests com melhor tratamento de erro
 async function apiRequest(url: string, options: RequestInit = {}) {
