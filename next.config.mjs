@@ -12,7 +12,8 @@ const nextConfig = {
   experimental: {
     serverActions: {},
   },
-  output: 'export'
+  output: 'export',
+  trailingSlash: true,
 };
 
 export default nextConfig;

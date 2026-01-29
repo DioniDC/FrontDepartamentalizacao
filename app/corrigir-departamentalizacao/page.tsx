@@ -5,7 +5,8 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { toast } from "@/hooks/use-toast"
 import { api } from "@/lib/api"
-import { ArrowLeft, Search, RefreshCw, AlertTriangle } from "lucide-react"
+import { ArrowLeft, Search, RefreshCw, AlertTriangle, Loader2 } from "lucide-react"
+import { Progress } from "@/components/ui/progress"
 import Link from "next/link"
 import { DataGrid, GridColDef } from "@mui/x-data-grid"
 import { Badge } from "@/components/ui/badge"
@@ -33,6 +34,8 @@ export default function CorrigirDepartamentalizacaoPage() {
   const [total, setTotal] = useState(0)
   const [loading, setLoading] = useState(false)
   const [correcting, setCorrecting] = useState(false)
+  const [recarregando, setRecarregando] = useState(false)
+  const [progresso, setProgresso] = useState({ processados: 0, total: 0, percentual: 0 })
 
   const verificarDivergencias = async () => {
     setLoading(true)
@@ -68,34 +71,40 @@ export default function CorrigirDepartamentalizacaoPage() {
 
     setCorrecting(true);
 
-    const chunkSize = 1000;
-    const total = divergencias.length;
+    const chunkSize = 10000;
+    const totalItens = divergencias.length;
     let sucesso = 0;
     let falhas = 0;
 
-for (let i = 0; i < total; i += chunkSize) {
-  const loteOriginal = divergencias.slice(i, i + chunkSize);
+    setProgresso({ processados: 0, total: totalItens, percentual: 0 });
 
-    const lote = loteOriginal.map(d => ({
-      codpro01: d.codpro01,
-      descpro01: d.descpro01,
-      codgss01: d.codgss01_sql,
-    }));
-  
-    try {
-      await api.atualizarCodgss(lote);
-      sucesso += lote.length;
-    } catch (err) {
-      falhas += lote.length;
-      toast({
-        title: "Erro",
-        description: `Falha ao processar lote ${i / chunkSize + 1}`,
-        variant: "destructive",
-      });
+    for (let i = 0; i < totalItens; i += chunkSize) {
+      const loteOriginal = divergencias.slice(i, i + chunkSize);
+
+      const lote = loteOriginal.map(d => ({
+        codpro01: d.codpro01,
+        descpro01: d.descpro01,
+        codgss01: d.codgss01_sql,
+      }));
+
+      try {
+        await api.atualizarCodgss(lote);
+        sucesso += lote.length;
+      } catch (err) {
+        falhas += lote.length;
+        toast({
+          title: "Erro",
+          description: `Falha ao processar lote ${Math.floor(i / chunkSize) + 1}`,
+          variant: "destructive",
+        });
+      }
+
+      const processados = Math.min(i + chunkSize, totalItens);
+      const percentual = Math.round((processados / totalItens) * 100);
+      setProgresso({ processados, total: totalItens, percentual });
+
+      await new Promise(resolve => setTimeout(resolve, 0));
     }
-  
-    await new Promise(resolve => setTimeout(resolve, 0));
-  }
 
     toast({
       title: "Atualização concluída",
@@ -103,7 +112,14 @@ for (let i = 0; i < total; i += chunkSize) {
     });
 
     setCorrecting(false);
+    setProgresso({ processados: 0, total: 0, percentual: 0 });
+
+    // Limpa a tela e mostra loading enquanto busca divergências restantes
+    setDivergencias([]);
+    setTotal(0);
+    setRecarregando(true);
     await verificarDivergencias();
+    setRecarregando(false);
   };
 
   const columns: GridColDef[] = [
@@ -198,7 +214,66 @@ for (let i = 0; i < total; i += chunkSize) {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          {total > 0 && (
+          {correcting && (
+            <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center">
+              <div className="bg-card border rounded-2xl shadow-2xl p-8 w-full max-w-md mx-4 animate-in fade-in zoom-in duration-300">
+                <div className="text-center mb-6">
+                  <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-primary/10 mb-4">
+                    <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                  </div>
+                  <h3 className="text-xl font-semibold">Atualizando Produtos</h3>
+                  <p className="text-muted-foreground text-sm mt-1">
+                    Por favor, aguarde enquanto processamos...
+                  </p>
+                </div>
+
+                <div className="space-y-4">
+                  <div className="relative">
+                    <Progress value={progresso.percentual} className="h-4 rounded-full" />
+                    <div className="absolute inset-0 flex items-center justify-center">
+                      <span className="text-xs font-bold text-primary-foreground drop-shadow">
+                        {progresso.percentual}%
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className="flex justify-between items-center text-sm">
+                    <span className="text-muted-foreground">Progresso</span>
+                    <span className="font-mono font-medium">
+                      {progresso.processados.toLocaleString('pt-BR')}
+                      <span className="text-muted-foreground"> de </span>
+                      {progresso.total.toLocaleString('pt-BR')}
+                    </span>
+                  </div>
+
+                  <div className="pt-4 border-t">
+                    <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                      <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
+                      Processando lote {Math.ceil(progresso.processados / 10000)} de {Math.ceil(progresso.total / 10000)}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {recarregando && (
+            <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center">
+              <div className="bg-card border rounded-2xl shadow-2xl p-8 w-full max-w-md mx-4 animate-in fade-in zoom-in duration-300">
+                <div className="text-center">
+                  <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-primary/10 mb-4">
+                    <Search className="h-8 w-8 animate-pulse text-primary" />
+                  </div>
+                  <h3 className="text-xl font-semibold">Verificando...</h3>
+                  <p className="text-muted-foreground text-sm mt-2">
+                    Buscando divergências restantes
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {total > 0 && !correcting && (
             <div className="mb-4">
               <Badge variant="destructive" className="text-sm">
                 <AlertTriangle className="h-4 w-4 mr-1" />
